@@ -256,33 +256,39 @@ char getChar(byte c)
   }
 }
 
+char getLetter(byte c)
+{
+  switch(c) {
+    case '5':
+      return 'S';
+      break;
+    case '1':
+      return 'I';
+      break;
+    case '0':
+      return 'O';
+      break;
+    default:
+      return c;
+  }
+}
+
 void getDisplay()
 {
   __uint24 dispCopy = display; // Grab before it changes
 
   dispCopy &= 0x1c3fff; // Discard what's not on display (3rd byte LSB)
 
-  for (uint8_t i=0; i<3; i++) {
-    temperature.c_str[i] = getChar(dispCopy >> ((2-i)*7) & 0x7f);
+  for (int8_t i=2; i>=0; i--) {
+    if (i < 2 && temperature.c_str[2] >> 6 != 0) // Not a digit
+      temperature.c_str[i] = getLetter(getChar(dispCopy >> ((2-i)*7) & 0x7f));
+    else
+      temperature.c_str[i] = getChar(dispCopy >> ((2-i)*7) & 0x7f);
   }
   temperature.c_str[3] = 0x00;
 
   // Is it a valid numerical temperature? If not, translate to letters
   temperature.int_v = atoi(temperature.c_str);
-  if (temperature.int_v < 80)
-  {
-    switch(temperature.c_str[1]) {
-      case '5':
-        temperature.c_str[1] = 'S';
-        break;
-      case '1':
-        temperature.c_str[1] = 'I';
-        break;
-      case '0':
-        temperature.c_str[1] = 'O';
-        break;
-    }
-  }
 }
 
 void togglePin(uint8_t pin)
