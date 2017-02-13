@@ -85,7 +85,7 @@ void setup()
   EICRA &= ~(bit(ISC00) | bit (ISC01));  // clear existing flags
   EICRA |=  bit (ISC01) | bit (ISC00);   // rising edge interrupt
   EIFR   =  bit (INTF0);    // clear flag for interrupt 0
-  //EIMSK |=  bit (INT0);     // enable it
+  EIMSK |=  bit (INT0);     // enable it
  
   // reset Timer 2
   TCCR2A = 0;
