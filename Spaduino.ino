@@ -335,10 +335,9 @@ void loop (void)
         togglePin(4);
 
         // Wait for display to blink
-        for (uint8_t j=0; j < 20; j++) {
-          if (!changed || temperature.c_str[2] != ' ' || temperature.c_str[3] != ' ') {
+        for (uint8_t j=0; j < 30; j++) { // Wait for 3 sec max. (30 x 100ms)
+          if (!changed || display & 0x3fff != 0) {
             delay(100);
-            getDisplay();
           }
           else {
             changed = false; // Reset our change flag to see next temp
