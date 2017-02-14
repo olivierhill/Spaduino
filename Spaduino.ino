@@ -306,6 +306,21 @@ void togglePin(uint8_t pin)
   pinMode(pin, INPUT); // Hi-Z
 }
 
+bool waitForBlink()
+{
+  // Wait for display to blink
+  for (uint8_t j=0; j < 30; j++) { // Wait for 3 sec max. (30 x 100ms)
+    if (!changed || display & 0x3fff != 0) {
+      delay(100);
+    }
+    else {
+      changed = false; // Reset our change flag to see next temp
+      return true;
+    }
+  }
+  return false;
+}
+
 // main loop
 void loop (void)
 {
@@ -323,9 +338,6 @@ void loop (void)
         getDisplay();
         break;
       case CMD_SETTEMP:
-
-        uint8_t current_temp;
-
 #ifdef DEBUG
         Serial.println();
         Serial.println(String(millis()) + F(": Trying to set temperature to: ") + String(request.argument, DEC));
@@ -334,20 +346,11 @@ void loop (void)
         changed = false;
         togglePin(4);
 
-        // Wait for display to blink
-        for (uint8_t j=0; j < 30; j++) { // Wait for 3 sec max. (30 x 100ms)
-          if (!changed || display & 0x3fff != 0) {
-            delay(100);
-          }
-          else {
-            changed = false; // Reset our change flag to see next temp
-            break;
-          }
-        }
+        waitForBlink();
         
         for (uint8_t i=0; i < 40; i++) { // Up to 40 button push
           // wait for change and a valid temp
-          for (uint8_t j=0; j < 20; j++) { // Wait for 2 sec max.
+          for (uint8_t j=0; j < 20; j++) { // Wait for 2 sec max. (20 x 100ms)
             if (!changed || temperature.int_v < 80) {
               delay(100);
               getDisplay();
@@ -362,27 +365,25 @@ void loop (void)
 #endif
             break;
           }
-      
-          changed = false;
-          current_temp = temperature.int_v;
 
 #ifdef DEBUG
           Serial.print(millis());
           Serial.print(F(": Current target is: "));
-          Serial.println(current_temp, DEC);
+          Serial.println(temperature.int_v, DEC);
 #endif
 
-          if (current_temp == request.argument) {
+          if (temperature.int_v == request.argument) {
 #ifdef DEBUG
             Serial.print(millis());
             Serial.println(F(": All done"));
 #endif
+            temperature.target = temperature.int_v;
             break;
           }
           else {
+            changed = false;
             togglePin(4);
             //delay(200);
-            changed=false;
           }
         }
         break;
@@ -392,9 +393,10 @@ void loop (void)
         Serial.print(millis());
         Serial.println(F(": Reading current target temp"));
 #endif
-        togglePin(4);
-        delay(100);
         changed = false;
+        togglePin(4);
+
+        waitForBlink();
 
         // wait for change and a valid temp
         for (uint8_t j=0; j < 20; j++) { // Wait for 2 sec max.
@@ -402,6 +404,8 @@ void loop (void)
             delay(100);
             getDisplay();
           }
+          else
+            break;
         }
 
 #ifdef DEBUG
