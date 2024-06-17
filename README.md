@@ -7,6 +7,4 @@ Flash your chip with this sketch. You need to connect wires similar to this:
 
 ![Breadboard for Spaduino](fritzing/Spaduino_bb.png)
 
-For more information regarding the pins, see the [Cal Spa Connector](http://www.olivierhill.ca/archives/74-Cal-Spa-Connector.html)
-
 I use this setup with a WiFi microcontroller to monitor the hot tub remotely using MQTT.
